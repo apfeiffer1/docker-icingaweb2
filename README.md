@@ -10,7 +10,7 @@ Please note that this setup and director are in alpha state, don't use for produ
 ## Usage
 ### Basic Usage
 docker run --name my-mariadb -e MYSQL_ROOT_PASSWORD=my-secret -d mariadb  
-docker run --name my-icinga2 -h icinga2 --link my-mariadb:mysql -d rbicker/icinga2  
+docker run --name my-icinga2 -h icinga2 --link my-mariadb:mysql --restart=always -d rbicker/icinga2  
 docker run --name my-icingaweb2 -h icingaweb2 -v icinga2-config:/etc/icinga2 -v icinga2-lib:/var/lib/icinga2  --link my-mariadb:mysql --link my-icinga2:icinga2 -p 8080:80 -d rbicker/icingaweb2  
 
 Browse to http://localhost:8080  
