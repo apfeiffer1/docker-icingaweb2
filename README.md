@@ -13,7 +13,7 @@ docker run --name my-mariadb -e MYSQL_ROOT_PASSWORD=my-secret -d mariadb
 docker run --name my-icinga2 -h icinga2 --link my-mariadb:mysql --restart=always -d rbicker/icinga2  
 docker run --name my-icingaweb2 -h icingaweb2 -v icinga2-config:/etc/icinga2 -v icinga2-lib:/var/lib/icinga2  --link my-mariadb:mysql --link my-icinga2:icinga2 -p 8080:80 -d rbicker/icingaweb2  
 
-Browse to http://localhost:8080  
+Browse to http://localhost:8080 and log in using admin / admin  
 
 ## Environment variables
 ### rbicker/icinga2
@@ -21,7 +21,7 @@ MYSQL_ICINGA_DB icinga2 - name of the icinga2 database
 MYSQL_ICINGA_USER icinga2 - icinga2 database user  
 MYSQL_ICINGA_PASSWORD icinga2 - icinga2 database password  
 API_USER api - api user (used by icingaweb2 -> director)  
-API_PASSWORD api password
+API_PASSWORD api - api password
 
 ### rbicker/icingaweb2
 MYSQL_ICINGAWEB_DB icingaweb2 - name of the icingaweb2 database  
