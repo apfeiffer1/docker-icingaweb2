@@ -13,56 +13,6 @@ if [[ -z "${MYSQL_HOST}" ]]; then
   exit 1
 fi
 
-# command to create icingaweb2 admin user
-ADMIN_PASSWORD_CRYPT=$(openssl passwd -1 $ADMIN_PASSWORD)
-MYSQL_CREATE_ADMIN_CMD="USE ${MYSQL_ICINGAWEB_DB}; INSERT INTO icingaweb_user (name, active, password_hash) VALUES ('${ADMIN_USER}', 1, '${ADMIN_PASSWORD_CRYPT}');"
-
-# check if icingaweb database exists		
-if mysqlshow -h ${MYSQL_HOST} --u root -p${MYSQL_ENV_MYSQL_ROOT_PASSWORD} ${MYSQL_ICINGAWEB_DB}; then
-  echo "found icingaweb2 mysql database in linked mysql container"
-  else
-    echo "mysql database ${MYSQL_ICINGAWEB_DB} not found"
-    # create database
-    if mysql -h ${MYSQL_HOST} -u root -p${MYSQL_ENV_MYSQL_ROOT_PASSWORD} -e "${MYSQL_CREATE_WEB_DB_CMD}"; then
-      echo "created database ${MYSQL_ICINGAWEB_DB}"
-	  if mysql -h ${MYSQL_HOST} -u root -p${MYSQL_ENV_MYSQL_ROOT_PASSWORD} ${MYSQL_ICINGAWEB_DB} < /usr/share/icingaweb2/etc/schema/mysql.schema.sql; then
-	    echo "created icingaweb2 mysql database schema"
-		else
-		  >&2 echo "error creating icinga2 database schema"
-		  exit 1
-	  fi
-	  if mysql -h ${MYSQL_HOST} -u root -p${MYSQL_ENV_MYSQL_ROOT_PASSWORD} -e "${MYSQL_CREATE_ADMIN_CMD}"; then
-	    echo "imported icingaweb2 admin user in database"
-	    else
-		  >&2 echo "error creating icingaweb2 admin user"
-		  exit 1
-	  fi
-      else
-        >&2 echo "error creating database ${MYSQL_ICINGAWEB_DB}"
-		exit 1
-    fi
-fi
-
-# check if director database exists		
-if mysqlshow -h ${MYSQL_HOST} --u root -p${MYSQL_ENV_MYSQL_ROOT_PASSWORD} ${MYSQL_DIRECTOR_DB}; then
-  echo "found director mysql database in linked mysql container"
-  else
-    echo "mysql database ${MYSQL_DIRECTOR_DB} not found"
-    # create database
-    if mysql -h ${MYSQL_HOST} -u root -p${MYSQL_ENV_MYSQL_ROOT_PASSWORD} -e "${MYSQL_CREATE_DIRECTOR_DB_CMD}"; then
-      echo "created database ${MYSQL_DIRECTOR_DB}"
-	  if /usr/share/icingaweb2/bin/icingacli director migration run; then
-	    echo "ran director migration"
-		else
-		>&2 echo "error running director migration"
-		exit 1
-	  fi
-      else
-        >&2 echo "error creating database ${MYSQL_DIRECTOR_DB}"
-		exit 1
-    fi
-fi
-
 # create /etc/icingaweb2/resources.ini
 if [ ! -f /etc/icingaweb2/resources.ini ]; then
   echo "creating /etc/icingaweb2/resources.ini"
@@ -146,15 +96,12 @@ EOF
   echo "creating /etc/icingaweb2/modules/director/kickstart.ini"
     cat <<EOF > /etc/icingaweb2/modules/director/kickstart.ini
 [config]
-endpoint               = icinga-master
+endpoint               = icinga2
 host                   = icinga2
 port                   = 5665
 username               = "${ICINGA2_ENV_API_USER}"
 password               = "${ICINGA2_ENV_API_PASSWORD}"
 EOF
-  
-  /usr/share/icingaweb2/bin/icingacli director kickstart run
-  echo "ran director kickstart"
   /usr/share/icingaweb2/bin/icingacli module enable director
   echo "enabled director module"
 fi
@@ -192,6 +139,62 @@ host                 = example.tld
 ;port                = 22 ; Optional. The default is 22
 resource             = example.tld-icinga2
 EOF
+fi
+
+# command to create icingaweb2 admin user
+ADMIN_PASSWORD_CRYPT=$(openssl passwd -1 $ADMIN_PASSWORD)
+MYSQL_CREATE_ADMIN_CMD="USE ${MYSQL_ICINGAWEB_DB}; INSERT INTO icingaweb_user (name, active, password_hash) VALUES ('${ADMIN_USER}', 1, '${ADMIN_PASSWORD_CRYPT}');"
+
+# check if icingaweb database exists		
+if mysqlshow -h ${MYSQL_HOST} --u root -p${MYSQL_ENV_MYSQL_ROOT_PASSWORD} ${MYSQL_ICINGAWEB_DB}; then
+  echo "found icingaweb2 mysql database in linked mysql container"
+  else
+    echo "mysql database ${MYSQL_ICINGAWEB_DB} not found"
+    # create database
+    if mysql -h ${MYSQL_HOST} -u root -p${MYSQL_ENV_MYSQL_ROOT_PASSWORD} -e "${MYSQL_CREATE_WEB_DB_CMD}"; then
+      echo "created database ${MYSQL_ICINGAWEB_DB}"
+	  if mysql -h ${MYSQL_HOST} -u root -p${MYSQL_ENV_MYSQL_ROOT_PASSWORD} ${MYSQL_ICINGAWEB_DB} < /usr/share/icingaweb2/etc/schema/mysql.schema.sql; then
+	    echo "created icingaweb2 mysql database schema"
+		else
+		  >&2 echo "error creating icinga2 database schema"
+		  exit 1
+	  fi
+	  if mysql -h ${MYSQL_HOST} -u root -p${MYSQL_ENV_MYSQL_ROOT_PASSWORD} -e "${MYSQL_CREATE_ADMIN_CMD}"; then
+	    echo "imported icingaweb2 admin user in database"
+	    else
+		  >&2 echo "error creating icingaweb2 admin user"
+		  exit 1
+	  fi
+      else
+        >&2 echo "error creating database ${MYSQL_ICINGAWEB_DB}"
+		exit 1
+    fi
+fi
+
+# check if director database exists		
+if mysqlshow -h ${MYSQL_HOST} --u root -p${MYSQL_ENV_MYSQL_ROOT_PASSWORD} ${MYSQL_DIRECTOR_DB}; then
+  echo "found director mysql database in linked mysql container"
+  else
+    echo "mysql database ${MYSQL_DIRECTOR_DB} not found"
+    # create database
+    if mysql -h ${MYSQL_HOST} -u root -p${MYSQL_ENV_MYSQL_ROOT_PASSWORD} -e "${MYSQL_CREATE_DIRECTOR_DB_CMD}"; then
+      echo "created database ${MYSQL_DIRECTOR_DB}"
+	  if /usr/share/icingaweb2/bin/icingacli director migration run; then
+	    echo "ran director migration"
+		else
+		>&2 echo "error running director migration"
+		exit 1
+	  fi
+	  if /usr/share/icingaweb2/bin/icingacli director kickstart run; then
+		echo "ran director kickstart"
+		else
+		  >&2 echo "error running director kickstart"
+		  exit 1
+      fi
+      else
+        >&2 echo "error creating database ${MYSQL_DIRECTOR_DB}"
+		exit 1
+    fi
 fi
 
 # fix permission (othwerwise config can't be changed using the web interface)
