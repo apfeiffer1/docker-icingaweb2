@@ -43,6 +43,8 @@ RUN /usr/share/icingaweb2/bin/icingacli setup config webserver apache --document
   
 ADD content/ /
 
+VOLUME ["/etc/icingaweb2"]
+
 EXPOSE 80 443
 
 RUN chmod +x /run.sh
