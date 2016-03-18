@@ -29,7 +29,7 @@ if [ ! -f /etc/icingaweb2/resources.ini ]; then
   cat <<EOF > /etc/icingaweb2/resources.ini
 [icingaweb2]
 type                = "db"
-db                  = "icingaweb2"
+db                  = "mysql"
 host                = "${MYSQL_HOST}"
 port                = "3306"
 dbname              = "${MYSQL_ICINGAWEB_DB}"
@@ -39,7 +39,7 @@ password            = "${MYSQL_ICINGAWEB_PASSWORD}"
 
 [icinga2]
 type                = "db"
-db                  = "icinga2"
+db                  = "mysql"
 host                = "${MYSQL_HOST}"
 port                = "3306"
 dbname              = "${ICINGA2_ENV_MYSQL_ICINGA_DB}"
@@ -49,7 +49,7 @@ password            = "${ICINGA2_ENV_MYSQL_ICINGA_PASSWORD}"
 
 [director]
 type                = "db"
-db                  = "director"
+db                  = "mysql"
 host                = "${MYSQL_HOST}"
 port                = "3306"
 dbname              = "${MYSQL_DIRECTOR_DB}"
