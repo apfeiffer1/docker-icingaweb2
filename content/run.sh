@@ -1,5 +1,8 @@
 #!/bin/bash
 
+#icinga2 variables
+ICINGA2_HOST="${ICINGA2_PORT_5665_TCP_ADDR}"
+
 # mysql variables
 MYSQL_HOST="${MYSQL_PORT_3306_TCP_ADDR}"
 MYSQL_CREATE_WEB_DB_CMD="CREATE DATABASE ${MYSQL_ICINGAWEB_DB}; \
@@ -19,8 +22,8 @@ if [ ! -f /etc/icingaweb2/resources.ini ]; then
   cat <<EOF > /etc/icingaweb2/resources.ini
 [icingaweb2]
 type                = "db"
-db                  = "mysql"
-host                = "mysql"
+db                  = "${MYSQL_HOST}"
+host                = "${MYSQL_HOST}"
 port                = "3306"
 dbname              = "${MYSQL_ICINGAWEB_DB}"
 username            = "${MYSQL_ICINGAWEB_USER}"
@@ -29,8 +32,8 @@ password            = "${MYSQL_ICINGAWEB_PASSWORD}"
 
 [icinga2]
 type                = "db"
-db                  = "mysql"
-host                = "mysql"
+db                  = "${MYSQL_HOST}"
+host                = "${MYSQL_HOST}"
 port                = "3306"
 dbname              = "${ICINGA2_ENV_MYSQL_ICINGA_DB}"
 username            = "${ICINGA2_ENV_MYSQL_ICINGA_USER}"
@@ -39,8 +42,8 @@ password            = "${ICINGA2_ENV_MYSQL_ICINGA_PASSWORD}"
 
 [director]
 type                = "db"
-db                  = "mysql"
-host                = "mysql"
+db                  = "${MYSQL_HOST}"
+host                = "${MYSQL_HOST}"
 port                = "3306"
 dbname              = "${MYSQL_DIRECTOR_DB}"
 username            = "${MYSQL_DIRECTOR_USER}"
@@ -97,7 +100,7 @@ EOF
     cat <<EOF > /etc/icingaweb2/modules/director/kickstart.ini
 [config]
 endpoint               = icinga2
-host                   = icinga2
+host                   = ${ICINGA2_HOST}"
 port                   = 5665
 username               = "${ICINGA2_ENV_API_USER}"
 password               = "${ICINGA2_ENV_API_PASSWORD}"
