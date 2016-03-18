@@ -12,9 +12,16 @@ MYSQL_CREATE_DIRECTOR_DB_CMD="CREATE DATABASE ${MYSQL_DIRECTOR_DB} CHARACTER SET
 
 # check linked mysql container
 if [[ -z "${MYSQL_HOST}" ]]; then
-  >&2 echo "no mysql database container find - please link a mysql/mariadb container using --link some-mariadb:mysql"
+  >&2 echo "no mysql database container found - please link a mysql/mariadb container using --link some-mariadb:mysql"
   exit 1
 fi
+
+# check linked mysql container
+if [[ -z "${ICINGA2_HOST}" ]]; then
+  >&2 echo "no icinga2 container found - please link a rbicker/icinga2 container using --link some-icinga2:icinga2"
+  exit 1
+fi
+
 
 # create /etc/icingaweb2/resources.ini
 if [ ! -f /etc/icingaweb2/resources.ini ]; then
