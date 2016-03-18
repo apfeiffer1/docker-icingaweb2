@@ -95,7 +95,7 @@ permissions         = "*"
 EOF
 fi
 
- create /etc/icingaweb2/modules/director/config.ini
+# create /etc/icingaweb2/modules/director/config.ini
 if [[ ! -f /etc/icingaweb2/modules/director/config.ini ]]; then
   echo "creating /etc/icingaweb2/modules/director/config.ini"
   cat <<EOF > /etc/icingaweb2/modules/director/config.ini
