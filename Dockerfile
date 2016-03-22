@@ -33,8 +33,9 @@ RUN addgroup --system icingaweb2 \
 RUN git clone http://git.icinga.org/icingaweb2.git /usr/share/icingaweb2 \
   && git clone http://github.com/Icinga/icingaweb2-module-director.git /usr/share/icingaweb2/modules/director
   
-RUN /usr/share/icingaweb2/bin/icingacli setup config directory \
-  && mkdir -p /etc/icingaweb2/modules/monitoring \
+RUN /usr/share/icingaweb2/bin/icingacli setup config directory
+
+RUN mkdir -p /etc/icingaweb2/modules/monitoring \
   && mkdir -p /etc/icingaweb2/modules/director
 
 RUN /usr/share/icingaweb2/bin/icingacli setup config webserver apache --document-root /usr/share/icingaweb2/public > /etc/apache2/conf-available/icingaweb2.conf \
