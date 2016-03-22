@@ -23,10 +23,10 @@ if [[ -z "${ICINGA2_HOST}" ]]; then
 fi
 
 # check if containers are running
-while ! ping -c1 MYSQL_HOST &>/dev/null; do 
+while ! ping -c1 -w3 $MYSQL_HOST &>/dev/null; do 
   echo "ping to ${MYSQL_HOST} failed - waiting for mysql container"
 done
-while ! ping -c1 ICINGA2_HOST &>/dev/null; do
+while ! ping -c1 -w3 $ICINGA2_HOST &>/dev/null; do
   echo "ping to ${ICINGA2_HOST} failed - waiting for icinga2 container"
 done
 
