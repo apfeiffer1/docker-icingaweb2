@@ -16,11 +16,20 @@ if [[ -z "${MYSQL_HOST}" ]]; then
   exit 1
 fi
 
-# check linked mysql container
+# check linked icinga container
 if [[ -z "${ICINGA2_HOST}" ]]; then
   >&2 echo "no icinga2 container found - please link a rbicker/icinga2 container using --link some-icinga2:icinga2"
   exit 1
 fi
+
+# check if containers are running
+while ! ping -c1 MYSQL_HOST &>/dev/null; then 
+  do echo "ping to ${MYSQL_HOST} failed - waiting for mysql container"; 
+done
+while ! ping -c1 ICINGA2_HOST &>/dev/null; then
+  do echo "ping to ${ICINGA2_HOST} failed - waiting for icinga2 container"; 
+done
+
 
 
 # create /etc/icingaweb2/resources.ini
