@@ -24,6 +24,9 @@ if [[ -z "${ICINGA2_HOST}" ]]; then
   exit 1
 fi
 
+# get icinga2 api endpoint
+ICINGA2_API_ENDPOINT=$(curl -k -s -u api:api 'https://localhost:5665/v1/objects/Endpoints' | ./jq-linux64 -r '.results[].name')
+
 # check if containers are running
 while ! ping -c1 -w3 $MYSQL_HOST &>/dev/null; do 
   echo "ping to ${MYSQL_HOST} failed - waiting for mysql container"
@@ -166,7 +169,7 @@ EOF
   echo "creating /etc/icingaweb2/modules/director/kickstart.ini"
     cat <<EOF > /etc/icingaweb2/modules/director/kickstart.ini
 [config]
-endpoint               = "icinga2"
+endpoint               = ${ICINGA2_API_ENDPOINT}"
 host                   = ${ICINGA2_HOST}"
 port                   = 5665
 username               = "${ICINGA2_ENV_API_USER}"
