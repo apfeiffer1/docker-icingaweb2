@@ -2,11 +2,11 @@
 
 #icinga2 variables
 #ICINGA2_HOST="${ICINGA2_PORT_5665_TCP_ADDR}"
-ICINGA2_HOST="mysql"
+ICINGA2_HOST="icinga2"
 
 # mysql variables
 #MYSQL_HOST="${MYSQL_PORT_3306_TCP_ADDR}"
-MYSQL_HOST="icinga2"
+MYSQL_HOST="mysql"
 MYSQL_CREATE_WEB_DB_CMD="CREATE DATABASE ${MYSQL_ICINGAWEB_DB}; \
         GRANT ALL ON ${MYSQL_ICINGAWEB_DB}.* TO '${MYSQL_ICINGAWEB_USER}'@'%' IDENTIFIED BY '${MYSQL_ICINGAWEB_PASSWORD}';"
 MYSQL_CREATE_DIRECTOR_DB_CMD="CREATE DATABASE ${MYSQL_DIRECTOR_DB} CHARACTER SET 'utf8'; \
@@ -25,7 +25,7 @@ if [[ -z "${ICINGA2_HOST}" ]]; then
 fi
 
 # get icinga2 api endpoint
-ICINGA2_API_ENDPOINT=$(curl -k -s -u api:api 'https://localhost:5665/v1/objects/Endpoints' | ./jq-linux64 -r '.results[].name')
+ICINGA2_API_ENDPOINT=$(curl -k -s -u ${ICINGA2_ENV_API_USER}:${ICINGA2_ENV_API_PASSWORD} 'https://${ICINGA2_HOST}:5665/v1/objects/Endpoints' | ./jq-linux64 -r '.results[].name')
 
 # check if containers are running
 while ! ping -c1 -w3 $MYSQL_HOST &>/dev/null; do 
