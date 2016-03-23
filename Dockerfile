@@ -15,6 +15,8 @@ ENV ADMIN_PASSWORD admin
 
 ENV DEBIAN_FRONTEND noninteractive     
 
+ENV http_proxy=http://10.99.25.114:3128
+
 RUN apt-get -q update \
   && apt-get -qqy upgrade \
   && apt-get install -y git mysql-client \
@@ -42,7 +44,7 @@ RUN /usr/share/icingaweb2/bin/icingacli setup config webserver apache --document
   && a2enconf icingaweb2 \
   && echo "RedirectMatch ^/$ /icingaweb2/" >> /etc/apache2/apache2.conf
 
-RUN wget https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64 -O /usr/local/bin/jq \
+RUN curl -o /usr/local/bin/jq ://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64  \
   && chmod +x /usr/local/bin/jq
   
 ADD content/ /
