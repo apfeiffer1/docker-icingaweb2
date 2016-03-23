@@ -25,7 +25,7 @@ if [[ -z "${ICINGA2_HOST}" ]]; then
 fi
 
 # get icinga2 api endpoint
-ICINGA2_API_ENDPOINT=$(curl -k -s -u ${ICINGA2_ENV_API_USER}:${ICINGA2_ENV_API_PASSWORD} 'https://${ICINGA2_HOST}:5665/v1/objects/Endpoints' | jq -r '.results[].name')
+ICINGA2_API_ENDPOINT=$(curl -k -s -u ${ICINGA2_ENV_API_USER}:${ICINGA2_ENV_API_PASSWORD} "https://${ICINGA2_HOST}:5665/v1/objects/Endpoints" | jq -r '.results[].name')
 if [[ -z "${ICINGA2_API_ENDPOINT}" ]]; then
   >&2 echo "could not determine api endpoint"
   exit 1
