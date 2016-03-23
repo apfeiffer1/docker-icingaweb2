@@ -15,8 +15,6 @@ ENV ADMIN_PASSWORD admin
 
 ENV DEBIAN_FRONTEND noninteractive     
 
-ENV http_proxy=http://10.99.25.114:3128
-
 RUN apt-get -q update \
   && apt-get -qqy upgrade \
   && apt-get install -y git mysql-client \
