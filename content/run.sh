@@ -14,7 +14,7 @@ MYSQL_CREATE_DIRECTOR_DB_CMD="CREATE DATABASE ${MYSQL_DIRECTOR_DB} CHARACTER SET
 
 # check linked mysql container
 if [[ -z "${MYSQL_HOST}" ]]; then
-  >&2 echo "no mysql database container found - please link a mysql/mariadb container using --link some-mariadb:mysql"
+  >&2 echo "no mysql database container found - please link a mysql (or mariadb) container using --link some-mariadb:mysql"
   exit 1
 fi
 
