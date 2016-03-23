@@ -6,7 +6,7 @@ ICINGA2_HOST="mysql"
 
 # mysql variables
 #MYSQL_HOST="${MYSQL_PORT_3306_TCP_ADDR}"
-MYSQL_HOST="mysql"
+MYSQL_HOST="icinga2"
 MYSQL_CREATE_WEB_DB_CMD="CREATE DATABASE ${MYSQL_ICINGAWEB_DB}; \
         GRANT ALL ON ${MYSQL_ICINGAWEB_DB}.* TO '${MYSQL_ICINGAWEB_USER}'@'%' IDENTIFIED BY '${MYSQL_ICINGAWEB_PASSWORD}';"
 MYSQL_CREATE_DIRECTOR_DB_CMD="CREATE DATABASE ${MYSQL_DIRECTOR_DB} CHARACTER SET 'utf8'; \
@@ -166,7 +166,7 @@ EOF
   echo "creating /etc/icingaweb2/modules/director/kickstart.ini"
     cat <<EOF > /etc/icingaweb2/modules/director/kickstart.ini
 [config]
-endpoint               = icinga2
+endpoint               = "${ICINGA2_ENV_NODE_NAME}"
 host                   = ${ICINGA2_HOST}"
 port                   = 5665
 username               = "${ICINGA2_ENV_API_USER}"
