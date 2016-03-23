@@ -26,6 +26,10 @@ fi
 
 # get icinga2 api endpoint
 ICINGA2_API_ENDPOINT=$(curl -k -s -u ${ICINGA2_ENV_API_USER}:${ICINGA2_ENV_API_PASSWORD} 'https://${ICINGA2_HOST}:5665/v1/objects/Endpoints' | ./jq-linux64 -r '.results[].name')
+if [[ -z "${ICINGA2_API_ENDPOINT}" ]]; then
+  >&2 echo "could not determine api endpoint"
+  exit 1
+fi
 
 # check if containers are running
 while ! ping -c1 -w3 $MYSQL_HOST &>/dev/null; do 
@@ -34,7 +38,6 @@ done
 while ! ping -c1 -w3 $ICINGA2_HOST &>/dev/null; do
   echo "ping to ${ICINGA2_HOST} failed - waiting for icinga2 container"
 done
-
 
 # command to create icingaweb2 admin user
 ADMIN_PASSWORD_CRYPT=$(openssl passwd -1 $ADMIN_PASSWORD)
@@ -224,7 +227,6 @@ host                 = example.tld
 resource             = example.tld-icinga2
 EOF
 fi
-
 
 # fix permission (othwerwise config can't be changed using the web interface)
 chown -R www-data:icingaweb2 /etc/icingaweb2
