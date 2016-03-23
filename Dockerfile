@@ -23,7 +23,7 @@ RUN apt-get -q update \
 RUN docker-php-ext-configure intl \
   && docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
   && docker-php-ext-configure ldap --with-libdir=lib/x86_64-linux-gnu \
-  && docker-php-ext-install -j$(nproc) intl gd ldap gettext curl pdo pdo_mysql mysqli
+  && docker-php-ext-install -j$(nproc) intl gd ldap gettext curl pdo pdo_mysql
 
 RUN a2enmod rewrite
 
@@ -44,10 +44,13 @@ RUN /usr/share/icingaweb2/bin/icingacli setup config webserver apache --document
   
 ADD content/ /
 
+# Fixing https://dev.icinga.org/issues/11264 / https://dev.icinga.org/issues/11393, may probably be removed later
+RUN chmod 1777 /tmp && patch -d /usr/share/icingaweb2/library/Icinga/Data/Db < /tmp/DbConnection.php.patch
+
+RUN chmod +x /run.sh
+
 VOLUME ["/etc/icingaweb2"]
 
 EXPOSE 80 443
-
-RUN chmod +x /run.sh
 
 CMD ["/run.sh"]
