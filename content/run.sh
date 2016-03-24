@@ -166,8 +166,8 @@ EOF
   echo "creating /etc/icingaweb2/modules/director/kickstart.ini"
     cat <<EOF > /etc/icingaweb2/modules/director/kickstart.ini
 [config]
-endpoint               = ${ICINGA2_API_ENDPOINT}"
-host                   = ${ICINGA2_HOST}"
+endpoint               = "${ICINGA2_API_ENDPOINT}"
+host                   = "${ICINGA2_HOST}"
 port                   = 5665
 username               = "${ICINGA2_ENV_API_USER}"
 password               = "${ICINGA2_ENV_API_PASSWORD}"
