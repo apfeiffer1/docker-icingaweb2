@@ -77,12 +77,6 @@ if mysqlshow -h ${MYSQL_HOST} --u root -p${MYSQL_ENV_MYSQL_ROOT_PASSWORD} ${MYSQ
     # create database
     if mysql -h ${MYSQL_HOST} -u root -p${MYSQL_ENV_MYSQL_ROOT_PASSWORD} -e "${MYSQL_CREATE_DIRECTOR_DB_CMD}"; then
       echo "created database ${MYSQL_DIRECTOR_DB}"
-	  if /usr/share/icingaweb2/bin/icingacli director migration run; then
-	    echo "ran director migration"
-		else
-		>&2 echo "error running director migration"
-		exit 1
-	  fi
       else
         >&2 echo "error creating database ${MYSQL_DIRECTOR_DB}"
 		exit 1
@@ -184,6 +178,12 @@ EOF
     	else
 	  >&2 echo "error enabling director module"
 	  exit 1
+  fi
+  if /usr/share/icingaweb2/bin/icingacli director migration run; then
+  echo "ran director migration"
+  else
+    >&2 echo "error running director migration"
+    exit 1
   fi
   if /usr/share/icingaweb2/bin/icingacli director kickstart run; then
 	echo "ran director kickstart"
