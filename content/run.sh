@@ -214,17 +214,18 @@ EOF
   echo "enabled monitoring module"
 fi
 
-# TODO
 # create /etc/icingaweb2/modules/monitoring/commandtransports.ini
 if [[ ! -f /etc/icingaweb2/modules/monitoring/commandtransports.ini ]]; then
+  echo "copy ssh id to icinga2 container"
+  sshpass -p "${ICINGA2_ENV_ROOT_PASSWORD}" ssh-copy-id -o StrictHostKeyChecking=no root@icinga2
   echo "creating /etc/icingaweb2/modules/monitoring/commandtransports.ini"
   cat <<EOF > /etc/icingaweb2/modules/monitoring/commandtransports.ini
 [icinga2]
 transport            = remote
 path                 = /var/run/icinga2/cmd/icinga2.cmd
-host                 = example.tld
+host                 = "${ICINGA2_HOST}"
 ;port                = 22 ; Optional. The default is 22
-resource             = example.tld-icinga2
+user                 = root
 EOF
 fi
 

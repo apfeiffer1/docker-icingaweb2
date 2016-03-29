@@ -17,7 +17,7 @@ ENV DEBIAN_FRONTEND noninteractive
 
 RUN apt-get -q update \
   && apt-get -qqy upgrade \
-  && apt-get install -y git mysql-client \
+  && apt-get install -y git mysql-client sudo sshpass \
     zlib1g-dev libicu-dev g++ libpng12-dev libjpeg62-turbo-dev  libfreetype6-dev libldap2-dev libcurl4-openssl-dev
 
 RUN docker-php-ext-configure intl \
@@ -44,6 +44,10 @@ RUN /usr/share/icingaweb2/bin/icingacli setup config webserver apache --document
 
 RUN curl -L -o /usr/local/bin/jq https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64  \
   && chmod +x /usr/local/bin/jq
+
+RUN mkdir -p /var/www/.ssh \
+  && chown /var/www.ssh
+  && sudo ssh-keygen -t rsa -N "" -f /var/www/.ssh/id_rsa
   
 ADD content/ /
 
