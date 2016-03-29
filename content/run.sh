@@ -217,7 +217,7 @@ fi
 # create /etc/icingaweb2/modules/monitoring/commandtransports.ini
 if [[ ! -f /etc/icingaweb2/modules/monitoring/commandtransports.ini ]]; then
   echo "copy ssh id to icinga2 container"
-  sshpass -p "${ICINGA2_ENV_ROOT_PASSWORD}" ssh-copy-id -o StrictHostKeyChecking=no root@icinga2
+  sudo -u www-data sshpass -p "${ICINGA2_ENV_ROOT_PASSWORD}" ssh-copy-id -o StrictHostKeyChecking=no root@icinga2
   echo "creating /etc/icingaweb2/modules/monitoring/commandtransports.ini"
   cat <<EOF > /etc/icingaweb2/modules/monitoring/commandtransports.ini
 [icinga2]
