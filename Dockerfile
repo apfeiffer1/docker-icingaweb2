@@ -46,8 +46,8 @@ RUN curl -L -o /usr/local/bin/jq https://github.com/stedolan/jq/releases/downloa
   && chmod +x /usr/local/bin/jq
 
 RUN mkdir -p /var/www/.ssh \
-  && chown /var/www.ssh
-  && sudo ssh-keygen -t rsa -N "" -f /var/www/.ssh/id_rsa
+  && chown www-data:www-data /var/www.ssh
+  && sudo -u www-data ssh-keygen -t rsa -N "" -f /var/www/.ssh/id_rsa
   
 ADD content/ /
 
