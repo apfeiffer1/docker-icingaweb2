@@ -52,7 +52,7 @@ RUN mkdir -p /var/www/.ssh \
 ADD content/ /
 
 # Fixing https://dev.icinga.org/issues/11264 / https://dev.icinga.org/issues/11393, may probably be removed later
-RUN chmod 1777 /tmp && patch -d /usr/share/icingaweb2/library/Icinga/Data/Db < /tmp/DbConnection.php.patch
+# RUN chmod 1777 /tmp && patch -d /usr/share/icingaweb2/library/Icinga/Data/Db < /tmp/DbConnection.php.patch
 
 RUN chmod +x /run.sh
 
