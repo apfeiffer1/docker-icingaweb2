@@ -49,7 +49,8 @@ RUN mkdir -p /var/www/.ssh \
   && chown www-data:www-data /var/www/.ssh \
   && sudo -u www-data ssh-keygen -t rsa -N "" -f /var/www/.ssh/id_rsa
   
-ADD content/ /
+ADD content/tmp/DbConnection.php.patch /tmp/DbConnection.php.patch
+ADD content/usr /usr
 
 # Fixing https://dev.icinga.org/issues/11264 / https://dev.icinga.org/issues/11393, may probably be removed later
 # RUN chmod 1777 /tmp && patch -d /usr/share/icingaweb2/library/Icinga/Data/Db < /tmp/DbConnection.php.patch
