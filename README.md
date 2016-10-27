@@ -15,6 +15,55 @@ docker run --name my-icingaweb2 -h icingaweb2 -v icinga2-config:/etc/icinga2 -v 
 
 Browse to http://localhost:8080 and log in using admin / admin  
 
+### Docker-compose template
+
+```
+version: '2'
+
+services:
+  mysql:
+    image: mariadb
+    environment:
+      MYSQL_ROOT_PASSWORD: icinga2
+      MYSQL_DATABASE: icinga2
+      MYSQL_USER: icinga2
+      MYSQL_PASSWORD: icinga2
+
+  icinga2:
+    image: rbicker/icinga2
+    hostname: icinga2
+    links:
+      - mysql
+    environment:
+      MYSQL_ICINGA_PASSWORD: icinga2
+      MYSQL_ICINGA_USER: icinga2
+      MYSQL_ICINGA_DB: icinga2
+      MYSQL_ENV_MYSQL_ROOT_PASSWORD: icinga2
+      API_USER: api
+      API_PASSWORD: api
+
+  icingaweb2:
+    image: rbicker/icingaweb2
+    ports:
+      - 8080:80
+    environment:
+      MYSQL_ENV_MYSQL_ROOT_PASSWORD: icinga2
+      MYSQL_ICINGAWEB_DB: icingaweb2
+      MYSQL_ICINGAWEB_USER: icingaweb2
+      MYSQL_ICINGAWEB_PASSWORD: icingaweb2
+      ICINGA2_ENV_API_USER: api
+      ICINGA2_ENV_API_PASSWORD: api
+      ICINGA2_ENV_MYSQL_ICINGA_DB: icinga2
+      ICINGA2_ENV_MYSQL_ICINGA_USER: icinga2
+      ICINGA2_ENV_MYSQL_ICINGA_PASSWORD: icinga2
+    links:
+      - mysql
+      - icinga2
+    volumes:
+      - ./icinga2-config:/etc/icinga2
+      - ./icinga2-lib:/var/lib/icinga2
+```
+
 ## Environment variables
 ### rbicker/icinga2
 MYSQL_ICINGA_DB icinga2 - name of the icinga2 database  
