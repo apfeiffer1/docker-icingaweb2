@@ -5,6 +5,7 @@ ICINGA2_HOST="${ICINGA2_HOST:-icinga2}"
 MYSQL_HOST="${MYSQL_HOST:-mysql}"
 
 # In order to work with legacy environment variables linking and docker-compose env_file, we remap the usual variables:
+ICINGA2_API_ENDPOINT=${ICINGA2_API_ENDPOINT:-${ICINGA2_HOST}}
 ICINGA2_API_USER=${ICINGA2_API_USER:-${ICINGA2_ENV_API_USER:-${API_USER:-notset}}}
 ICINGA2_API_PASSWORD=${ICINGA2_API_PASSWORD:-${ICINGA2_ENV_API_PASSWORD:-${API_PASSWORD:-notset}}}
 ICINGA2_ROOT_PASSWORD=${ICINGA2_ENV_ROOT_PASSWORD:-notset}
