@@ -1,0 +1,33 @@
+version: '2'
+
+services:
+  mysql:
+    image: mariadb
+    env_file:
+      - mysql.env
+
+  icinga2:
+    #    image: rbicker/icinga2
+    build: ../../docker-icinga2
+    hostname: icinga2
+    links:
+      - mysql
+    env_file:
+      - mysql.env
+      - icinga2.env
+
+  icingaweb2:
+    # image: rbicker/icingaweb2
+    build: ..
+    ports:
+      - 8080:80
+    env_file:
+      - mysql.env
+      - icinga2.env
+      - icingaweb2.env
+    links:
+      - mysql
+      - icinga2
+    volumes:
+      - ./icinga2-config:/etc/icinga2
+      - ./icinga2-lib:/var/lib/icinga2

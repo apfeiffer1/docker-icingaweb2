@@ -1,16 +1,35 @@
 #!/bin/bash
 
-#icinga2 variables
-#ICINGA2_HOST="${ICINGA2_PORT_5665_TCP_ADDR}"
-ICINGA2_HOST="icinga2"
+# Hosts
+ICINGA2_HOST="${ICINGA2_HOST:-icinga2}"
+MYSQL_HOST="${MYSQL_HOST:-mysql}"
 
-# mysql variables
-#MYSQL_HOST="${MYSQL_PORT_3306_TCP_ADDR}"
-MYSQL_HOST="mysql"
+# In order to work with legacy environment variables linking and docker-compose env_file, we remap the usual variables:
+ICINGA2_API_USER=${ICINGA2_API_USER:-${ICINGA2_ENV_API_USER:-${API_USER:-notset}}}
+ICINGA2_API_PASSWORD=${ICINGA2_API_PASSWORD:-${ICINGA2_ENV_API_PASSWORD:-${API_PASSWORD:-notset}}}
+ICINGA2_ROOT_PASSWORD=${ICINGA2_ENV_ROOT_PASSWORD:-notset}
+MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-${MYSQL_ROOT_PASSWORD:-notset}}
+MYSQL_ICINGA_DB=${MYSQL_ICINGA_DB:-${ICINGA2_ENV_MYSQL_ICINGA_DB:-notset}}
+MYSQL_ICINGA_USER=${MYSQL_ICINGA_USER:-${ICINGA2_ENV_MYSQL_ICINGA_USER:-notset}}
+MYSQL_ICINGA_PASSWORD=${MYSQL_ICINGA_PASSWORD:-${ICINGA2_ENV_MYSQL_ICINGA_PASSWORD:-notset}}
+
+
+# Other variables
 MYSQL_CREATE_WEB_DB_CMD="CREATE DATABASE ${MYSQL_ICINGAWEB_DB}; \
         GRANT ALL ON ${MYSQL_ICINGAWEB_DB}.* TO '${MYSQL_ICINGAWEB_USER}'@'%' IDENTIFIED BY '${MYSQL_ICINGAWEB_PASSWORD}';"
 MYSQL_CREATE_DIRECTOR_DB_CMD="CREATE DATABASE ${MYSQL_DIRECTOR_DB} CHARACTER SET 'utf8'; \
 		GRANT ALL ON ${MYSQL_DIRECTOR_DB}.* TO '${MYSQL_DIRECTOR_USER}'@'%' IDENTIFIED BY '${MYSQL_DIRECTOR_PASSWORD}';"
+
+# functions
+function wait_for_container() {
+    declare container="$1"
+
+    while ! ping -c1 -w3 $container &>/dev/null; do
+        echo "ping to ${container} failed - waiting for ${container} container"
+        sleep 1
+    done
+
+}
 
 # check linked mysql container
 if [[ -z "${MYSQL_HOST}" ]]; then
@@ -18,46 +37,33 @@ if [[ -z "${MYSQL_HOST}" ]]; then
   exit 1
 fi
 
-# check linked icinga container
-if [[ -z "${ICINGA2_HOST}" ]]; then
-  >&2 echo "no icinga2 container found - please link a rbicker/icinga2 container using --link some-icinga2:icinga2"
-  exit 1
-fi
-
-# get icinga2 api endpoint
-ICINGA2_API_ENDPOINT=$(curl -k -s -u ${ICINGA2_ENV_API_USER}:${ICINGA2_ENV_API_PASSWORD} "https://${ICINGA2_HOST}:5665/v1/objects/Endpoints" | jq -r '.results[].name')
-if [[ -z "${ICINGA2_API_ENDPOINT}" ]]; then
-  >&2 echo "could not determine api endpoint"
-  exit 1
-fi
-
 # check if containers are running
-while ! ping -c1 -w3 $MYSQL_HOST &>/dev/null; do 
-  echo "ping to ${MYSQL_HOST} failed - waiting for mysql container"
-done
-while ! ping -c1 -w3 $ICINGA2_HOST &>/dev/null; do
-  echo "ping to ${ICINGA2_HOST} failed - waiting for icinga2 container"
+wait_for_container "$MYSQL_HOST"
+wait_for_container "$ICINGA2_HOST"
+while ! mysqlshow -h ${MYSQL_HOST} --u root -p${MYSQL_ROOT_PASSWORD} ; do
+  echo "Mysql is not ready yet"
+  sleep 1
 done
 
-# command to create icingaweb2 admin user
+# create icingaweb2 admin user
 ADMIN_PASSWORD_CRYPT=$(openssl passwd -1 $ADMIN_PASSWORD)
 MYSQL_CREATE_ADMIN_CMD="USE ${MYSQL_ICINGAWEB_DB}; INSERT INTO icingaweb_user (name, active, password_hash) VALUES ('${ADMIN_USER}', 1, '${ADMIN_PASSWORD_CRYPT}');"
 
-# check if icingaweb database exists		
-if mysqlshow -h ${MYSQL_HOST} --u root -p${MYSQL_ENV_MYSQL_ROOT_PASSWORD} ${MYSQL_ICINGAWEB_DB}; then
+# check if icingaweb database exists
+if mysqlshow -h ${MYSQL_HOST} --u root -p${MYSQL_ROOT_PASSWORD} ${MYSQL_ICINGAWEB_DB}; then
   echo "found icingaweb2 mysql database in linked mysql container"
   else
     echo "mysql database ${MYSQL_ICINGAWEB_DB} not found"
     # create database
-    if mysql -h ${MYSQL_HOST} -u root -p${MYSQL_ENV_MYSQL_ROOT_PASSWORD} -e "${MYSQL_CREATE_WEB_DB_CMD}"; then
+    if mysql -h ${MYSQL_HOST} -u root -p${MYSQL_ROOT_PASSWORD} -e "${MYSQL_CREATE_WEB_DB_CMD}"; then
       echo "created database ${MYSQL_ICINGAWEB_DB}"
-	  if mysql -h ${MYSQL_HOST} -u root -p${MYSQL_ENV_MYSQL_ROOT_PASSWORD} ${MYSQL_ICINGAWEB_DB} < /usr/share/icingaweb2/etc/schema/mysql.schema.sql; then
+	  if mysql -h ${MYSQL_HOST} -u root -p${MYSQL_ROOT_PASSWORD} ${MYSQL_ICINGAWEB_DB} < /usr/share/icingaweb2/etc/schema/mysql.schema.sql; then
 	    echo "created icingaweb2 mysql database schema"
 		else
 		  >&2 echo "error creating icinga2 database schema"
 		  exit 1
 	  fi
-	  if mysql -h ${MYSQL_HOST} -u root -p${MYSQL_ENV_MYSQL_ROOT_PASSWORD} -e "${MYSQL_CREATE_ADMIN_CMD}"; then
+	  if mysql -h ${MYSQL_HOST} -u root -p${MYSQL_ROOT_PASSWORD} -e "${MYSQL_CREATE_ADMIN_CMD}"; then
 	    echo "imported icingaweb2 admin user in database"
 	    else
 		  >&2 echo "error creating icingaweb2 admin user"
@@ -69,13 +75,13 @@ if mysqlshow -h ${MYSQL_HOST} --u root -p${MYSQL_ENV_MYSQL_ROOT_PASSWORD} ${MYSQ
     fi
 fi
 
-# check if director database exists		
-if mysqlshow -h ${MYSQL_HOST} --u root -p${MYSQL_ENV_MYSQL_ROOT_PASSWORD} ${MYSQL_DIRECTOR_DB}; then
+# check if director database exists
+if mysqlshow -h ${MYSQL_HOST} --u root -p${MYSQL_ROOT_PASSWORD} ${MYSQL_DIRECTOR_DB}; then
   echo "found director mysql database in linked mysql container"
   else
     echo "mysql database ${MYSQL_DIRECTOR_DB} not found"
     # create database
-    if mysql -h ${MYSQL_HOST} -u root -p${MYSQL_ENV_MYSQL_ROOT_PASSWORD} -e "${MYSQL_CREATE_DIRECTOR_DB_CMD}"; then
+    if mysql -h ${MYSQL_HOST} -u root -p${MYSQL_ROOT_PASSWORD} -e "${MYSQL_CREATE_DIRECTOR_DB_CMD}"; then
       echo "created database ${MYSQL_DIRECTOR_DB}"
       else
         >&2 echo "error creating database ${MYSQL_DIRECTOR_DB}"
@@ -102,9 +108,9 @@ type                = "db"
 db                  = "mysql"
 host                = "${MYSQL_HOST}"
 port                = "3306"
-dbname              = "${ICINGA2_ENV_MYSQL_ICINGA_DB}"
-username            = "${ICINGA2_ENV_MYSQL_ICINGA_USER}"
-password            = "${ICINGA2_ENV_MYSQL_ICINGA_PASSWORD}"
+dbname              = "${MYSQL_ICINGA_DB}"
+username            = "${MYSQL_ICINGA_USER}"
+password            = "${MYSQL_ICINGA_PASSWORD}"
 
 
 [director]
@@ -162,15 +168,15 @@ if [[ ! -f /etc/icingaweb2/modules/director/config.ini ]]; then
 [db]
 resource = "${MYSQL_DIRECTOR_DB}"
 EOF
-  
+
   echo "creating /etc/icingaweb2/modules/director/kickstart.ini"
     cat <<EOF > /etc/icingaweb2/modules/director/kickstart.ini
 [config]
 endpoint               = "${ICINGA2_API_ENDPOINT}"
 host                   = "${ICINGA2_HOST}"
 port                   = 5665
-username               = "${ICINGA2_ENV_API_USER}"
-password               = "${ICINGA2_ENV_API_PASSWORD}"
+username               = "${ICINGA2_API_USER}"
+password               = "${ICINGA2_API_PASSWORD}"
 EOF
 
   if /usr/share/icingaweb2/bin/icingacli module enable director; then
@@ -217,7 +223,7 @@ fi
 # create /etc/icingaweb2/modules/monitoring/commandtransports.ini
 if [[ ! -f /etc/icingaweb2/modules/monitoring/commandtransports.ini ]]; then
   echo "copy ssh id to icinga2 container"
-  sudo -u www-data sshpass -p "${ICINGA2_ENV_ROOT_PASSWORD}" ssh-copy-id -o StrictHostKeyChecking=no root@icinga2
+  sudo -u www-data sshpass -p "${ICINGA2_ROOT_PASSWORD}" ssh-copy-id -o StrictHostKeyChecking=no root@icinga2
   echo "creating /etc/icingaweb2/modules/monitoring/commandtransports.ini"
   cat <<EOF > /etc/icingaweb2/modules/monitoring/commandtransports.ini
 [icinga2]
