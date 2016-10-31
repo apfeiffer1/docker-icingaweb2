@@ -13,7 +13,10 @@ ENV MYSQL_DIRECTOR_PASSWORD director
 ENV ADMIN_USER admin
 ENV ADMIN_PASSWORD admin
 
-ENV DEBIAN_FRONTEND noninteractive     
+ENV ICINGAWEB2_VERSION master
+ENV ICINGAWEB2_DIRECTOR_VERSION master
+
+ENV DEBIAN_FRONTEND noninteractive
 
 RUN apt-get -q update \
   && apt-get -qqy upgrade \
@@ -28,11 +31,13 @@ RUN docker-php-ext-configure intl \
 RUN a2enmod rewrite
 
 RUN addgroup --system icingaweb2 \
-  && usermod -a -G icingaweb2 www-data  
+  && usermod -a -G icingaweb2 www-data
 
 RUN git clone http://git.icinga.org/icingaweb2.git /usr/share/icingaweb2 \
-  && git clone http://github.com/Icinga/icingaweb2-module-director.git /usr/share/icingaweb2/modules/director
-  
+  && git -C /usr/share/icingaweb2 checkout $ICINGAWEB2_VERSION \
+  && git clone http://github.com/Icinga/icingaweb2-module-director.git /usr/share/icingaweb2/modules/director \
+  && git -C /usr/share/icingaweb2/modules/director checkout $ICINGAWEB2_DIRECTOR_VERSION
+
 RUN /usr/share/icingaweb2/bin/icingacli setup config directory
 
 RUN mkdir -p /etc/icingaweb2/modules/monitoring \
@@ -48,7 +53,7 @@ RUN curl -L -o /usr/local/bin/jq https://github.com/stedolan/jq/releases/downloa
 RUN mkdir -p /var/www/.ssh \
   && chown www-data:www-data /var/www/.ssh \
   && sudo -u www-data ssh-keygen -t rsa -N "" -f /var/www/.ssh/id_rsa
-  
+
 ADD content/tmp/DbConnection.php.patch /tmp/DbConnection.php.patch
 ADD content/usr /usr
 
